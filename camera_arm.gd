@@ -2,6 +2,8 @@ extends SpringArm3D
 
 const SPEED = 3.5
 
+var spring_target_length: float = spring_length
+
 @export var pitch_length: Curve
 
 func _ready():
@@ -16,8 +18,7 @@ func _physics_process(delta):
 		rotate(Vector3.DOWN, input_dir.x*delta*SPEED)
 		rotate_object_local(Vector3.LEFT, input_dir.y*delta*SPEED)
 		rotation.x = clampf(rotation.x, -1.5, 1)
-	
-	var spring_target_length = 7*pitch_length.sample((-rotation.x+PI/2)/PI)
+		spring_target_length = 7*pitch_length.sample((-rotation.x+PI/2)/PI)
 	spring_length = lerpf(spring_length, spring_target_length, 0.1)
 	text()
 
