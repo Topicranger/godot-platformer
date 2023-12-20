@@ -1,0 +1,63 @@
+[gd_scene load_steps=9 format=3 uid="uid://d25yalx5u73h1"]
+
+[ext_resource type="PackedScene" uid="uid://mhdteogvsgtx" path="res://sylvia.tscn" id="1_wt5a4"]
+[ext_resource type="PackedScene" uid="uid://bcwkugn6v3oy7" path="res://addons/godot_state_charts/utilities/state_chart_debugger.tscn" id="2_i53ur"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_56ji0"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_qhjt0"]
+sky_material = SubResource("ProceduralSkyMaterial_56ji0")
+
+[sub_resource type="Environment" id="Environment_teten"]
+background_mode = 2
+sky = SubResource("Sky_qhjt0")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1xnfs"]
+albedo_color = Color(0, 0, 0, 1)
+metallic = 0.42
+roughness = 0.56
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ohyig"]
+material = SubResource("StandardMaterial3D_1xnfs")
+size = Vector2(20, 40)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_t4pkv"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_teten")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.34202, -0.883022, 0.321394, 0, 0.34202, 0.939693, -0.939693, 0.321394, -0.116978, 0, 0, 0)
+sky_mode = 1
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("PlaneMesh_ohyig")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("WorldBoundaryShape3D_t4pkv")
+
+[node name="Sylvia" parent="." instance=ExtResource("1_wt5a4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.713259, -0.41243, 0.566713, 0, 0.808549, 0.588429, -0.700901, -0.419702, 0.576705, 4.57013, 4.73837, 4.6343)
+visible = false
+
+[node name="StateChartDebugger" parent="." instance=ExtResource("2_i53ur")]
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 373.0
+offset_bottom = 369.0
+grow_horizontal = 1
+grow_vertical = 1
+initial_node_to_watch = NodePath("../Sylvia")

@@ -1,0 +1,186 @@
+[gd_scene load_steps=17 format=3 uid="uid://mhdteogvsgtx"]
+
+[ext_resource type="Script" path="res://addons/godot_state_charts/state_chart.gd" id="1_h2yxb"]
+[ext_resource type="Script" path="res://sylvia.gd" id="1_m06m0"]
+[ext_resource type="AudioStream" uid="uid://bfghvnlcxvnlm" path="res://jump.wav" id="2_4iqye"]
+[ext_resource type="Script" path="res://camera_arm.gd" id="2_aaelt"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/parallel_state.gd" id="2_nmhne"]
+[ext_resource type="AudioStream" uid="uid://c8184nc0y2hni" path="res://doublejump.wav" id="3_dkupu"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/compound_state.gd" id="3_eg3oe"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/atomic_state.gd" id="4_jex6v"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/transition.gd" id="5_ehq34"]
+[ext_resource type="Script" path="res://addons/godot_state_charts/animation_tree_state.gd" id="6_ew5rq"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gji5g"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lpwr1"]
+shading_mode = 2
+diffuse_mode = 1
+specular_mode = 2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_afx3b"]
+material = SubResource("StandardMaterial3D_lpwr1")
+radius = 0.3
+height = 1.8
+radial_segments = 8
+rings = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_dya2b"]
+size = Vector3(0.1, 0.1, 0.5)
+
+[sub_resource type="Curve" id="Curve_aggjo"]
+_data = [Vector2(0.35, 0.4), 0.0, 0.0, 0, 0, Vector2(0.5, 0.5), 0.0, 0.0, 0, 0, Vector2(0.8, 0.6), 1.0, 1.0, 0, 0, Vector2(0.95, 0.9), 0.0, 0.0, 0, 0]
+point_count = 4
+metadata/_snap_enabled = true
+metadata/_snap_count = 20
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_tkd8j"]
+
+[node name="Sylvia" type="CharacterBody3D" groups=["player"]]
+process_priority = 1
+process_physics_priority = 1
+collision_layer = 0
+script = ExtResource("1_m06m0")
+
+[node name="Jump" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_4iqye")
+
+[node name="DoubleJump" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_dkupu")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_gji5g")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_afx3b")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+mesh = SubResource("BoxMesh_dya2b")
+
+[node name="CameraArm" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+spring_length = 3.5
+margin = 0.0
+script = ExtResource("2_aaelt")
+pitch_length = SubResource("Curve_aggjo")
+
+[node name="Label" type="Label" parent="CameraArm"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+offset_right = 1.0
+grow_vertical = 0
+
+[node name="Camera3D" type="Camera3D" parent="CameraArm"]
+current = true
+fov = 70.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+tree_root = SubResource("AnimationNodeStateMachine_tkd8j")
+anim_player = NodePath("../AnimationPlayer")
+
+[node name="StateChart" type="Node" parent="."]
+script = ExtResource("1_h2yxb")
+track_in_editor = true
+
+[node name="Root" type="Node" parent="StateChart"]
+script = ExtResource("2_nmhne")
+
+[node name="Movement" type="Node" parent="StateChart/Root"]
+editor_description = "This is the root of all movement related states."
+script = ExtResource("3_eg3oe")
+initial_state = NodePath("Grounded")
+
+[node name="Grounded" type="Node" parent="StateChart/Root/Movement"]
+editor_description = "This state is active when the player is on the ground."
+script = ExtResource("4_jex6v")
+
+[node name="On Jump" type="Node" parent="StateChart/Root/Movement/Grounded"]
+editor_description = "When jumping become airborne and enable double-jump."
+script = ExtResource("5_ehq34")
+to = NodePath("../../Airborne/DoubleJumpEnabled")
+event = &"jump"
+
+[node name="On Airborne" type="Node" parent="StateChart/Root/Movement/Grounded"]
+editor_description = "When becoming airborne (e.g. through falling) move to airborne state."
+script = ExtResource("5_ehq34")
+to = NodePath("../../Airborne")
+event = &"airborne"
+
+[node name="Airborne" type="Node" parent="StateChart/Root/Movement"]
+editor_description = "This is the root state for when the player is in the air. We have sub-states to handle the various input that is allowed when in the air."
+script = ExtResource("3_eg3oe")
+initial_state = NodePath("CoyoteJumpEnabled")
+
+[node name="On Grounded" type="Node" parent="StateChart/Root/Movement/Airborne"]
+script = ExtResource("5_ehq34")
+to = NodePath("../../Grounded")
+event = &"grounded"
+
+[node name="CoyoteJumpEnabled" type="Node" parent="StateChart/Root/Movement/Airborne"]
+editor_description = "While in this state, the player can jump for a short time. The state is activated by default when the player becomes airborne from falling. Allowing a jump for a short time makes the controls feel nicer. The \"On Expiration\" transition will leave this state after the grace period."
+script = ExtResource("4_jex6v")
+
+[node name="On Jump" type="Node" parent="StateChart/Root/Movement/Airborne/CoyoteJumpEnabled"]
+editor_description = "On jump handle this as if the player originally jumped."
+script = ExtResource("5_ehq34")
+to = NodePath("../../DoubleJumpEnabled")
+event = &"jump"
+
+[node name="On Expiration" type="Node" parent="StateChart/Root/Movement/Airborne/CoyoteJumpEnabled"]
+editor_description = "After 0.2 seconds automatically move to falling state where no more jump is possible."
+script = ExtResource("5_ehq34")
+to = NodePath("../../CannotJump")
+delay_seconds = 0.2
+
+[node name="DoubleJumpEnabled" type="Node" parent="StateChart/Root/Movement/Airborne"]
+editor_description = "This state is active while the player is in the air and has jumped one time already. While the state is active, a second jump is allowed."
+script = ExtResource("4_jex6v")
+
+[node name="On Jump" type="Node" parent="StateChart/Root/Movement/Airborne/DoubleJumpEnabled"]
+editor_description = "When jumping in double jump state, move to a state where no more jumps are possible.
+
+Triggers the double-jump animation as a side effect."
+script = ExtResource("5_ehq34")
+to = NodePath("../../CannotJump")
+event = &"jump"
+
+[node name="CannotJump" type="Node" parent="StateChart/Root/Movement/Airborne"]
+editor_description = "This state is active when the player is airborne but can no longer jump either because the coyote-jump grace period has expired or the player has already used the double-jump."
+script = ExtResource("4_jex6v")
+
+[node name="Animation Control" type="Node" parent="StateChart/Root"]
+editor_description = "These states are bound to the animation tree and will trigger the corresponding animation states when activated. They are independent of the movement state, so they run in a separate substate in parallel to the movement state."
+script = ExtResource("3_eg3oe")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateChart/Root/Animation Control"]
+editor_description = "Animation tree state that that will cause the animation tree to go to the idle state once we get the idle event."
+script = ExtResource("6_ew5rq")
+animation_tree = NodePath("../../../../AnimationTree")
+
+[node name="On Moving" type="Node" parent="StateChart/Root/Animation Control/Idle"]
+script = ExtResource("5_ehq34")
+to = NodePath("../../Move")
+event = &"moving"
+
+[node name="Move" type="Node" parent="StateChart/Root/Animation Control"]
+editor_description = "Animation tree state that that will cause the animation tree to go to the move state once we get the moving event."
+script = ExtResource("6_ew5rq")
+animation_tree = NodePath("../../../../AnimationTree")
+
+[node name="On Idle" type="Node" parent="StateChart/Root/Animation Control/Move"]
+script = ExtResource("5_ehq34")
+to = NodePath("../../Idle")
+event = &"idle"
+
+[connection signal="state_physics_processing" from="StateChart/Root/Movement/Grounded" to="." method="_on_jump_enabled_state_physics_processing"]
+[connection signal="state_physics_processing" from="StateChart/Root/Movement/Airborne/CoyoteJumpEnabled" to="." method="_on_jump_enabled_state_physics_processing"]
+[connection signal="state_physics_processing" from="StateChart/Root/Movement/Airborne/DoubleJumpEnabled" to="." method="_on_jump_enabled_state_physics_processing"]
+[connection signal="taken" from="StateChart/Root/Movement/Airborne/DoubleJumpEnabled/On Jump" to="." method="_on_double_jump_jump"]
