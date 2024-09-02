@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://d25yalx5u73h1"]
+[gd_scene load_steps=11 format=3 uid="uid://d25yalx5u73h1"]
 
 [ext_resource type="PackedScene" uid="uid://mhdteogvsgtx" path="res://sylvia.tscn" id="1_wt5a4"]
 [ext_resource type="PackedScene" uid="uid://bcwkugn6v3oy7" path="res://addons/godot_state_charts/utilities/state_chart_debugger.tscn" id="2_i53ur"]
@@ -15,6 +15,11 @@ background_mode = 2
 sky = SubResource("Sky_qhjt0")
 tonemap_mode = 2
 glow_enabled = true
+glow_levels/1 = 0.9
+glow_levels/2 = 1.8
+glow_levels/4 = 1.0
+glow_levels/6 = 1.0
+glow_blend_mode = 1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1xnfs"]
 albedo_color = Color(0, 0, 0, 1)
@@ -26,6 +31,14 @@ material = SubResource("StandardMaterial3D_1xnfs")
 size = Vector2(20, 40)
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_t4pkv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0j31p"]
+albedo_color = Color(2.106, 1.58, 0.9, 1)
+metallic = 0.6
+roughness = 0.17
+
+[sub_resource type="PrismMesh" id="PrismMesh_f5k0a"]
+material = SubResource("StandardMaterial3D_0j31p")
 
 [node name="Node3D" type="Node3D"]
 
@@ -44,6 +57,11 @@ skeleton = NodePath("../..")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 shape = SubResource("WorldBoundaryShape3D_t4pkv")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.561837, -0.190855, -0.80493, -0.762714, 0.257256, -0.593368, 0.320321, 0.947308, -0.00103221, 2.66011, 0.994868, -5.72265)
+mesh = SubResource("PrismMesh_f5k0a")
+skeleton = NodePath("../WorldEnvironment")
 
 [node name="Sylvia" parent="." instance=ExtResource("1_wt5a4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
