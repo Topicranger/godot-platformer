@@ -19,6 +19,7 @@ glow_levels/1 = 0.9
 glow_levels/2 = 1.8
 glow_levels/4 = 1.0
 glow_levels/6 = 1.0
+glow_normalized = true
 glow_blend_mode = 1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1xnfs"]
